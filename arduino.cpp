@@ -8,7 +8,7 @@
 #include <SoftwareSerial.h>
 
 
-//define control signal port\
+//define control signal port
 //use PORT_STEPPER_XXXX+1 and PORT_STEPPER_XXXX+2 to get the other two port
 #define PORT_STEPPER_BIG_ARM 8;
 #define PORT_STEPPER_SMALL_ARM 12;
@@ -35,12 +35,14 @@ struct motor_controler {
     int target = 0;
   };
   int safe = 0;
+  //int motornum = 5; // the number of motors we want to control at one time we receive data
+  //motor motor_arr[motornum];
   motor stepper_big_arm;
   motor stepper_small_arm;
   motor stepper_gimbal;
   motor stepper_horizontal;
   motor servo;
-};
+} ;
 
 /* function bluetoothsetup 
  *  setup bluetooth
@@ -107,6 +109,7 @@ void setup()
   motor stepper_horizontal;
   motor servo;
 };
+
 
 /*
  * function receiveByte
@@ -238,30 +241,48 @@ mc.stepper_gi
 void loop()
 {
   // 我们假定这个函数可以将蓝牙模块传来的信息弄进我们预先设定的struct里面
-  BlueToothReceiver();
+  //BlueToothReceiver();
+  int number_wanted = 4;
+  int * res = receiveData(SoftwareSerial bluetooth, byte StartByte, byte InterStart, byte InterEnd, byte EndByte){
+  if (res[0] != number_wanted)
+  {
+    Serial.println("the num of data recieved does not match with numberwanted");
+    delay(2000);
+    continue;
+  }
+  Serial.println("the num of data recieved matches with numberwanted");
+  
 
   // 这个函数将所有motor调回初始状态
-  BackToOriginPosition();
+  //BackToOriginPosition();
   
   // MC：实例化的motorcontroler，关于其初始化，参见void setup
   // 同样地，我不太确定 CJB dl 的接口如何，此处暂时留空。（另外，全局变量不好吗……我觉得弄个structure是画蛇添足）
   int gimbal_target = MC.gimbal.target;
   
+  
   // 为了方便debug我们每次只动一个motor
   // FUTURE TO DO: 让他们一块转！（虽然效率没有改变但显得更一体化了）
   
   // 注：具体输入视receiver的数据而定……我不清楚蓝牙会传回什么样的数据，因此本句无法具体决定
-  StepperMotor(PORT_STEPPER_GIMBAL, 0, 100, false);
+  StepperMotor(PORT_STEPPER_GIMBAL, res[1], 100, false);
   // TODO
-  StepperMotor(PORT_STEPPER_BIG_ARM, 0, 100, false);
-  StepperMotor(PORT_STEPPER_SMALL_ARM, 0, 100, false);
-  StepperMotor(PORT_STEPPER_HORIZONTAL, 0, 100, false);
+  StepperMotor(PORT_STEPPER_BIG_ARM, res[2], 100, false);
+  StepperMotor(PORT_STEPPER_SMALL_ARM, res[3], 100, false);
+  StepperMotor(PORT_STEPPER_HORIZONTAL, res[4], 100, false);
   
   // pickup()：指挥夹子将物体夹起来。参数为1或0，具体说明请参见下方函数定义。
-  Pickup(0);
+  ServoPickup(0);
   delay(1000);
-  Pickup(1);
+  ServoPickup(1);
   delay(1000);
+  StepperMotor(PORT_STEPPER_GIMBAL, -res[1], 100, false);
+  // TODO
+  StepperMotor(PORT_STEPPER_BIG_ARM, -res[2], 100, false);
+  StepperMotor(PORT_STEPPER_SMALL_ARM, -res[3], 100, false);
+  StepperMotor(PORT_STEPPER_HORIZONTAL, -res[4], 100, false);
+  delay(1000);
+
   
   // 
   
@@ -337,9 +358,25 @@ void ServoPickup(int pick){
 // 函数：BlueToothReceiver
 // 参数：TBD
 // 返回值：TBD
-void BlueToothReceiver()
+void BlueToothReceiver(int numberwanted)
 {
     // TODO by CJB
+    // an array of data received
+    /*
+    int * res = receiveData(SoftwareSerial bluetooth, byte StartByte, byte InterStart, byte InterEnd, byte EndByte){
+    if (res[0] != numberwanted)
+    {
+      Serial.println("the num of data recieved does not match with numberwanted");
+      return;
+    }
+    Serial.println("the num of data recieved matches with numberwanted");
+    
+    for (int i = 1; i < res[0]; i++)
+    {
+      
+    }
+    */
+    
 }
 
 
