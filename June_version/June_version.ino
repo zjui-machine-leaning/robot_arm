@@ -11,6 +11,8 @@ const int negative = 126;
 const int time_de= 1;
 const int expansion = 2;
 //Connect the Bluetooth module
+//SoftwareSerial bluetooth(rxpin, txpin);
+
 void setup()
 {
   //Set the pin to put power out
@@ -25,21 +27,22 @@ void setup()
 }
 
 
-byte readoff(byte data, int wait_time = 1) {
-  char buff[40];
+byte readoff(byte data, int wait_time) {
+  byte buff;
   ////Serial.println("Readoff");
   ////Serial.println(bluetooth.available());
-  bool recieved = false;
-  while (!recieved) {
+  while (true) {
     while (!Serial.available()){
       delay(wait_time);
     }
-    buff = Serial.readBytes(buff,40);
-    for (int t=0; i<40; i++) {
-      char ch = buff[i];
-      if (ch=="X" && i<=19) {
-        
-      }
+    buff = Serial.read();
+    ////Serial.println(buff);
+    if (buff == data){
+      Serial.write(data);
+      buff = Serial.read();
+      delay(wait_time);
+    } else {
+      break;
     }
   }
   return buff;
